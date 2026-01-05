@@ -99,4 +99,36 @@ CREATE TABLE Orders (
     Status VARCHAR(20)
 );
 
+DELIMITER $$
+
+CREATE PROCEDURE ProcessOrders()
+BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        SELECT 'Transaction rollback because there an error' AS Result;
+    END;
+    
+    START TRANSACTION;
+    
+    INSERT INTO Orders VALUES (1, 'Order1', 1000.00, 'Pending');
+    INSERT INTO Orders VALUES (2, 'Order2', 2000.00, 'Pending');
+    INSERT INTO Orders VALUES (3, 'Order3', 3000.00, 'Pending');
+    
+    UPDATE Orders SET Status = 'Completed' WHERE OrderID = 1;
+    UPDATE Orders SET Status = 'Completed' WHERE OrderID = 2;
+    UPDATE Orders SET Status = 'Completed' WHERE OrderID = 3;
+    
+    COMMIT;
+    SELECT 'All orders process successfully' AS Result;
+END $$
+
+DELIMITER ;
+
+CALL ProcessOrders();
+
+SELECT * FROM Orders;
+
+
+-- Question 5
 
