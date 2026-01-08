@@ -1,0 +1,86 @@
+-- section2 
+-- READ UNCOMMITTED
+SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+START TRANSACTION;
+SELECT * FROM User_account WHERE ID = '003';
+
+-- READ COMMITTED
+SET TRANSACTION ISOLATION LEVEL READ COMMITTED;
+    INSERT INTO User_account (ID, Name, Balance) VALUES ('004', 'abcd', '10000');
+COMMIT;
+
+
+
+-- REPEATABLE READ
+START TRANSACTION;
+
+UPDATE User_account
+SET Balance = Balance + 1000
+WHERE ID = 005;
+COMMIT;
+
+
+-- SERIALIZABLE
+START TRANSACTION;
+
+INSERT INTO User_account (ID, Name, Balance)
+VALUES (006, 'F', 9999);
+
+
+-- Question 5
+-- i. DEMONSTRATE CONCURRENCY PROBLEMS
+
+-- a. Lost Update - Session B
+START TRANSACTION;
+SELECT Balance FROM User_account WHERE ID = 1;
+UPDATE User_account SET Balance = Balance + 5000 WHERE ID = 1;
+COMMIT;
+
+
+-- b. Dirty Read - Session B
+SET SESSION TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+START TRANSACTION;
+SELECT * FROM User_account WHERE ID = 1;
+COMMIT;
+
+
+-- c. Non-Repeatable Read - Session B
+START TRANSACTION;
+UPDATE User_account SET Balance = 80000 WHERE ID = 1;
+COMMIT;
+
+
+-- d. Phantom Read - Session B
+START TRANSACTION;
+INSERT INTO User_account VALUES (4, 'D', 20000);
+COMMIT;
+
+
+-- Question 5
+-- ii. PREVENT CONCURRENCY PROBLEMS
+-- a. Prevent Lost Update - Session B
+START TRANSACTION;
+SELECT Balance FROM User_account WHERE ID = 1 FOR UPDATE;
+UPDATE User_account SET Balance = Balance + 5000 WHERE ID = 1;
+COMMIT;
+
+
+-- b. Prevent Dirty Read - Session B
+SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED;
+START TRANSACTION;
+SELECT * FROM User_account WHERE ID = 1;
+COMMIT;
+
+
+-- c. Prevent Non-Repeatable Read - Session B
+START TRANSACTION;
+UPDATE User_account SET Balance = 80000 WHERE ID = 1;
+COMMIT;
+
+
+-- d. Prevent Phantom Read - Session B
+START TRANSACTION;
+INSERT INTO User_account VALUES (4, 'D', 20000);
+COMMIT;
+
+
