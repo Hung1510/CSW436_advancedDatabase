@@ -25,31 +25,35 @@ UPDATE User_account
 SET Balance = Balance + 100000
 WHERE ID = 002;
 
--- commit if transaction successful
 COMMIT;	
--- show result
+
 SELECT * FROM User_account;
 
--- drop to take result screenshot
 DROP TABLE User_account;
 
 
 
 -- Question 2
--- Sample data for question 2
+CREATE TABLE User_account (
+    ID INT NOT NULL,
+    Name VARCHAR(255) NOT NULL,
+    Balance DECIMAL(15,2) NOT NULL,
+    PRIMARY KEY (ID)
+);
+
 INSERT INTO User_account (ID, Name, Balance) VALUES 
-(003, 'C', 1234),(004, 'D', 12345),(005, 'E', 123456);
-SELECT * FROM User_account ;
--- READ UNCOMMITTED
--- READ COMMITTED
--- REPEATABLE READ
--- SERIALIZABLE
+(003, 'C', 1234),
+(004, 'D', 12345),
+(005, 'E', 123456);
+
+SELECT * FROM User_account;
 
 
 
 -- Question 3
 INSERT INTO User_account (ID, Name, Balance) VALUES 
-(10, 'Nguyen', 500000),(11, 'Pham', 100000);
+(10, 'Nguyen', 500000),
+(11, 'Pham', 100000);
 
 DELIMITER $$
 CREATE PROCEDURE TransferMoney()
@@ -63,7 +67,6 @@ BEGIN
     FROM User_account
     WHERE ID IN (10, 11);
 
-    -- get balance account 10
     SELECT Balance INTO balance_010
     FROM User_account
     WHERE ID = 10
@@ -91,7 +94,7 @@ CALL TransferMoney();
 SELECT * FROM User_account WHERE ID IN (10, 11);
 
 
--- Question4
+-- Question 4
 CREATE TABLE Orders (
     OrderID INT PRIMARY KEY,
     Name VARCHAR(100),
@@ -100,7 +103,6 @@ CREATE TABLE Orders (
 );
 
 DELIMITER $$
-
 CREATE PROCEDURE ProcessOrders()
 BEGIN
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
@@ -121,14 +123,53 @@ BEGIN
     
     COMMIT;
     SELECT 'All orders process successfully' AS Result;
-END $$
-
+END$$
 DELIMITER ;
 
 CALL ProcessOrders();
-
 SELECT * FROM Orders;
 
 
--- Question 5
+-- Question 5, 6, 7, 8 sample data
+INSERT INTO User_account VALUES 
+(101, 'Account1', 100000),
+(102, 'Account2', 50000),
+(103, 'Account3', 30000);
 
+
+-- Question 8
+
+-- Transaction with COMMIT
+START TRANSACTION;
+UPDATE User_account SET Balance = Balance - 5000 WHERE ID = 101;
+UPDATE User_account SET Balance = Balance + 5000 WHERE ID = 102;
+COMMIT;
+
+SELECT * FROM User_account WHERE ID IN (101, 102);
+
+
+-- Transaction with ROLLBACK
+START TRANSACTION;
+UPDATE User_account SET Balance = Balance - 5000 WHERE ID = 101;
+ROLLBACK;
+
+SELECT * FROM User_account WHERE ID IN (101, 102);
+
+
+-- Recovery After System Failure
+START TRANSACTION;
+UPDATE User_account SET Balance = Balance - 10000 WHERE ID = 101;
+ROLLBACK;
+
+SELECT * FROM User_account WHERE ID = 101;
+
+
+-- SAVEPOINT
+START TRANSACTION;
+UPDATE User_account SET Balance = Balance - 5000 WHERE ID = 101;
+SAVEPOINT sp1;
+UPDATE User_account SET Balance = Balance + 5000 WHERE ID = 102;
+ROLLBACK TO sp1;
+COMMIT;
+
+SELECT * FROM User_account WHERE ID IN (101, 102);
