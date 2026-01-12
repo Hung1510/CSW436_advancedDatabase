@@ -1,122 +1,116 @@
--- sample data in main file
+use lab1;
 -- Question 2
 
--- READ UNCOMMITTED
-Select * from User_account where ID = '003';
-SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+-- a. READ UNCOMMITTED
+SET SESSION TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
 START TRANSACTION;
-
-UPDATE User_account
-SET Balance = Balance - 100000
-WHERE ID = '003';
-
-rollback;
-
--- READ COMMITTED
+UPDATE User_account SET Balance = Balance - 10000 WHERE ID = 13;
+-- run sec 2
+ROLLBACK;
+-- b. READ COMMITTED
+SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED;
 START TRANSACTION;
-    UPDATE User_account SET Balance= 1000 WHERE ID = 004;
-COMMIT;
-    SELECT * FROM User_account WHERE ID = 004;
-
-	
--- REPEATABLE READ
-SET TRANSACTION ISOLATION LEVEL REPEATABLE READ;
-START TRANSACTION;
-
-SELECT * FROM User_account WHERE ID = 005;
-
-SELECT * FROM User_account WHERE ID = 005;
+UPDATE User_account SET Balance = 99999 WHERE ID = 14;
+-- run sec 2
 COMMIT;
 
-
--- SERIALIZABLE 
-SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+-- c. REPEATABLE READ
+SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ;
 START TRANSACTION;
-
-SELECT * FROM User_account WHERE ID = 3;
+SELECT * FROM User_account WHERE ID = 15;
+-- run sec 2
+SELECT * FROM User_account WHERE ID = 15;
 COMMIT;
+
+-- d. SERIALIZABLE
+SET SESSION TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+START TRANSACTION;
+SELECT * FROM User_account WHERE ID = 12;
+-- run sec 2
+COMMIT;
+
 
 
 -- Question 5
-
--- i DEMONSTRATE CONCURRENCY PROBLEMS
-
--- a Lost Update 
+-- i. demonstrate concurrency problems
+-- a. Lost Update
 START TRANSACTION;
-SELECT Balance FROM User_account WHERE ID = 1;
-UPDATE User_account SET Balance = Balance + 10000 WHERE ID = 1;
+SELECT Balance FROM User_account WHERE ID = 11;
+-- run sec 2
+UPDATE User_account SET Balance = Balance + 10000 WHERE ID = 11;
 COMMIT;
 
-
--- b Dirty Read 
+-- b. Dirty Read
+SET SESSION TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
 START TRANSACTION;
-UPDATE User_account SET Balance = 50000 WHERE ID = 1;
+UPDATE User_account SET Balance = 50000 WHERE ID = 11;
+-- run sec 2
 ROLLBACK;
 
-
--- c Non-Repeatable Read
+-- c. Non-Repeatable Read
 SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED;
 START TRANSACTION;
-SELECT * FROM User_account WHERE ID = 1;
-SELECT * FROM User_account WHERE ID = 1;
+SELECT * FROM User_account WHERE ID = 11;
+-- run sec 2
+SELECT * FROM User_account WHERE ID = 11;
 COMMIT;
 
-
--- d Phantom Read 
+-- d. Phantom Read
 SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED;
 START TRANSACTION;
-SELECT * FROM User_account;
-SELECT * FROM User_account;
+SELECT COUNT(*) FROM User_account;
+-- run sec 2
+SELECT COUNT(*) FROM User_account;
 COMMIT;
 
 
--- ii PREVENT CONCURRENCY PROBLEMS
-
--- a Prevent Lost Update 
+-- ii. prevent concurrency problems
+-- a. Prevent Lost Update
 START TRANSACTION;
-SELECT Balance FROM User_account WHERE ID = 1 FOR UPDATE;
-UPDATE User_account SET Balance = Balance + 10000 WHERE ID = 1;
+SELECT Balance FROM User_account WHERE ID = 11 FOR UPDATE;
+-- run sec 2
+UPDATE User_account SET Balance = Balance + 10000 WHERE ID = 11;
 COMMIT;
 
-
--- b Prevent Dirty Read
+-- b. Prevent Dirty Read
+SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED;
 START TRANSACTION;
-UPDATE User_account SET Balance = 50000 WHERE ID = 1;
+UPDATE User_account SET Balance = 60000 WHERE ID = 11;
+-- run sec 2
 ROLLBACK;
 
-
--- c Prevent Non-Repeatable Read
+-- c. Prevent Non-Repeatable Read
 SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ;
 START TRANSACTION;
-SELECT * FROM User_account WHERE ID = 1;
-SELECT * FROM User_account WHERE ID = 1;
+SELECT * FROM User_account WHERE ID = 11;
+-- run sec 2
+SELECT * FROM User_account WHERE ID = 11;
 COMMIT;
 
-
--- d Prevent Phantom Read
+-- d. Prevent Phantom Read
 SET SESSION TRANSACTION ISOLATION LEVEL SERIALIZABLE;
 START TRANSACTION;
-SELECT * FROM User_account;
-SELECT * FROM User_account;
+SELECT COUNT(*) FROM User_account;
+-- run sec 2
+SELECT COUNT(*) FROM User_account;
 COMMIT;
+
 
 
 -- Question 6
-
--- i Shared Lock (Read Lock) Transaction T1
+-- i. Shared Lock (Read Lock)
 START TRANSACTION;
 SELECT Balance FROM User_account WHERE ID = 101 LOCK IN SHARE MODE;
+
 COMMIT;
 
-
--- ii Exclusive Lock (Write Lock) Transaction T2
+-- ii. Exclusive Lock (Write Lock)
 START TRANSACTION;
 SELECT Balance FROM User_account WHERE ID = 101 FOR UPDATE;
 UPDATE User_account SET Balance = 110000 WHERE ID = 101;
 COMMIT;
 
-
--- iii Two-Phase Locking Transaction T1
+-- iii. Two-Phase Locking
 START TRANSACTION;
 SELECT Balance FROM User_account WHERE ID = 101 FOR UPDATE;
 SELECT Balance FROM User_account WHERE ID = 102 FOR UPDATE;
@@ -124,37 +118,53 @@ UPDATE User_account SET Balance = Balance - 100000 WHERE ID = 101;
 UPDATE User_account SET Balance = Balance + 100000 WHERE ID = 102;
 COMMIT;
 
-
--- iv Prevent Lost Update Transaction T1
+-- iv. Prevent Lost Update
 START TRANSACTION;
 SELECT Balance FROM User_account WHERE ID = 101 FOR UPDATE;
+-- run sec 2
 UPDATE User_account SET Balance = Balance + 5000 WHERE ID = 101;
 COMMIT;
 
 
+
 -- Question 7
-
--- Deadlock Situation
+-- a. Create Deadlock
+set autocommit=0;
 START TRANSACTION;
-UPDATE User_account SET Balance = Balance - 1000 WHERE ID = 101;
-UPDATE User_account SET Balance = Balance + 1000 WHERE ID = 102;
+UPDATE User_account SET Balance = Balance - 100 WHERE ID = 14;
+do sleep(5);
+UPDATE User_account SET Balance = Balance + 100 WHERE ID = 15;
 COMMIT;
 
-
--- b Identify Deadlock
+-- b. Identify Deadlock
 SHOW ENGINE INNODB STATUS;
-SELECT * FROM information_schema.INNODB_TRX;
 
-
--- c Prevent Deadlock
+-- c. Prevent Deadlock
 START TRANSACTION;
-UPDATE User_account SET Balance = Balance - 1000 WHERE ID = 101;
-UPDATE User_account SET Balance = Balance + 1000 WHERE ID = 102;
+UPDATE User_account SET Balance = Balance - 100 WHERE ID = 001;
+DO SLEEP(10);
+UPDATE User_account SET Balance = Balance + 100 WHERE ID = 002;
 COMMIT;
 
-
--- d Lock Wait Timeout
-SET innodb_lock_wait_timeout = 5;
+-- d. Lock Wait Timeout
+SET innodb_lock_wait_timeout = 2;
 START TRANSACTION;
-UPDATE User_account SET Balance = Balance - 1000 WHERE ID = 101;
+UPDATE User_account SET Balance = Balance - 100 WHERE ID = 002;
+DO SLEEP(10);
+-- run sec 2
 COMMIT;
+
+-- ex7:
+
+
+-- c) PREVENT deadlock
+START TRANSACTION;
+UPDATE User_account SET Balance = Balance - 50 WHERE ID = 001;
+DO SLEEP(5);
+UPDATE User_account SET Balance = Balance + 50 WHERE ID = 002;
+COMMIT;
+
+-- d) avoid deadlock by using a lock wait timeout:
+SET innodb_lock_wait_timeout = 3;
+START TRANSACTION;
+UPDATE User_account SET Balance = Balance + 100 WHERE ID = 002;
