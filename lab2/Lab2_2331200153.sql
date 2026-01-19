@@ -155,12 +155,22 @@ HAVING COUNT(e.course_id) > 1
 ORDER BY courses_enrolled DESC;
 
 -- Use EXPLAIN to analyze the execution plan  ( switch to form editor tfo see)
-EXPLAIN ANALYZE SELECT s.name AS student_name, COUNT(e.course_id) AS courses_enrolled
+EXPLAIN 
+SELECT s.name AS student_name, COUNT(e.course_id) AS courses_enrolled
 FROM Student s
 INNER JOIN Enrollment e ON s.student_id = e.student_id
 GROUP BY s.student_id, s.name
 HAVING COUNT(e.course_id) > 1
 ORDER BY courses_enrolled DESC;
+
+EXPLAIN 
+ANALYZE 
+SELECT s.name AS student_name, COUNT(e.course_id) AS courses_enrolled
+FROM Student s
+INNER JOIN Enrollment e ON s.student_id = e.student_id
+GROUP BY s.student_id, s.name
+HAVING COUNT(e.course_id) > 1;
+-- ORDER BY courses_enrolled DESC;
 
 
 -- Question 7 Write two equivalent SQL queries to display student names
@@ -200,16 +210,21 @@ INNER JOIN Enrollment e ON s.student_id = e.student_id
 INNER JOIN Course c ON e.course_id = c.course_id
 ORDER BY s.name;
 
--- Create index
-CREATE INDEX index_enrollment_studentId ON Enrollment(student_id);
-
--- EXPLAIN
-EXPLAIN SELECT s.name AS student_name, c.course_name
+EXPLAIN analyze SELECT s.name AS student_name, c.course_name
 FROM Student s
 INNER JOIN Enrollment e ON s.student_id = e.student_id
 INNER JOIN Course c ON e.course_id = c.course_id
 ORDER BY s.name;
 
+-- Create index
+CREATE INDEX index_enrollment_studentId ON Enrollment(student_id);
+
+-- EXPLAIN
+EXPLAIN analyze SELECT s.name AS student_name, c.course_name
+FROM Student s
+INNER JOIN Enrollment e ON s.student_id = e.student_id
+INNER JOIN Course c ON e.course_id = c.course_id
+Where  s.student_id =1;
 -- View index
 SHOW INDEX FROM Enrollment;
 
@@ -219,36 +234,34 @@ SHOW INDEX FROM Enrollment;
 
 START TRANSACTION;
 
--- Insert a new enrollment record for a student
+-- Insert new enrollment
 INSERT INTO Enrollment (student_id, course_id, semester) 
 VALUES (1, 103, 3);
 
 -- Display the ENROLLMENT table
 SELECT * FROM Enrollment WHERE student_id = 1;
 
--- display all enrollments
 -- SELECT * FROM Enrollment;
 
--- Rollback the transaction and display the table again
+-- Rollback transaction
 ROLLBACK;
 
 -- Display the table again
 SELECT * FROM Enrollment WHERE student_id = 1;
 -- SELECT * FROM Enrollment;
--- Commit the transaction and verify the final state
 START TRANSACTION;
 
--- Insert value again
+-- Insert value 
 INSERT INTO Enrollment (student_id, course_id, semester) 
 VALUES (1, 103, 3);
 
 COMMIT;
 
--- Verify the final state
+-- Verify final state
 SELECT * FROM Enrollment WHERE student_id = 1;
 -- SELECT * FROM Enrollment;
 
--- Use EXPLAIN to observe the query processing of the SELECT statement
+-- EXPLAIN observe query processing of SELECT 
 EXPLAIN SELECT * FROM Enrollment WHERE student_id = 1;
 
 EXPLAIN SELECT * FROM Enrollment;
