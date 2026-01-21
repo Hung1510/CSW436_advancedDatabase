@@ -19,6 +19,7 @@ INSERT INTO soil_sensors (sensor_id, moisture_level, recorded_time) VALUES
 (3, 20, '2026-1-3'),
 (4, 75, '2026-1-4'),
 (5, 40, '2026-1-5');
+select * from soil_sensors;
 
 -- 1.2. Then Create a stored procedure GetDryFields that:
 -- • Accepts a moisture threshold as an input parameter
@@ -34,11 +35,13 @@ END$$
 DELIMITER ;
 
 CALL GetDryFields(50);
+CALL GetDryFields(70);
 
 -- 2.1. Create a table fields if it does not exist with the following columns:
 -- • field_id (INT, Primary Key)
 -- • area_sq_meters (INT)
 -- • crop_type (VARCHAR(50))
+-- drop table fields;
 CREATE TABLE IF NOT EXISTS fields (
     field_id INT NOT NULL,
     area_sq_meters INT,
@@ -52,11 +55,13 @@ INSERT INTO fields (field_id, area_sq_meters, crop_type) VALUES
 (3, 300, 'Lettuce'),
 (4, 400, 'Wheat'),
 (5, 500, 'Eggplant');
+select * from fields;
 
 -- 2.2. Create a stored function CalculateWaterRequirement that:
 -- • Accepts area_sq_meters as input
 -- • Returns the total water required per irrigation cycle
 -- • Assume 5 liters of water per square meter
+-- -- DROP PROCEDURE CalculateWaterRequirement;
 DELIMITER $$
 CREATE FUNCTION CalculateWaterRequirement(area_sq_meters INT)
 RETURNS INT DETERMINISTIC
@@ -67,7 +72,8 @@ BEGIN
 END$$
 DELIMITER ;
 
-SELECT CALCULATEWATERREQUIREMENT(1000) AS water_required;
+SELECT CalculateWaterRequirement(1000) AS water_required;
+SELECT CalculateWaterRequirement(1500) AS water_required;
 
 -- calculate water for each field
 SELECT field_id, area_sq_meters, 
@@ -79,6 +85,7 @@ FROM fields;
 -- • field_id (INT)
 -- • water_used_liters (DECIMAL(10,2))
 -- • irrigation_date (DATE)
+-- drop table irrigation_logs;
 CREATE TABLE IF NOT EXISTS irrigation_logs (
     log_id INT NOT NULL,
     field_id INT,
@@ -94,10 +101,12 @@ INSERT INTO irrigation_logs (log_id, field_id, water_used_liters, irrigation_dat
 (4, 4, 400, '2026-01-02'),
 (5, 1, 500, '2026-01-03'),
 (6, 5, 600, '2026-01-04');
+select * from irrigation_logs;
 
 -- 3.2. Create a stored procedure GetTotalWaterUsage that:
 -- • Accepts a date as an input parameter
 -- • Returns the total water used on that date using an OUT parameter.
+-- DROP PROCEDURE GetTotalWaterUsage;
 DELIMITER $$
 CREATE PROCEDURE GetTotalWaterUsage(IN p_irrigation_date DATE, OUT total_water_used DECIMAL(10,2)
 )
@@ -112,9 +121,13 @@ DELIMITER ;
 CALL GetTotalWaterUsage('2026-01-01', @total);
 SELECT @total AS total_water_used_liters;
 
+CALL GetTotalWaterUsage('2026-01-02', @total);
+SELECT @total AS total_water_used_liters;
+
 -- 4.1. Create a table field_status if it does not exist with the following columns:
 -- • field_id (INT, Primary Key)
 -- • moisture_level (INT)
+-- drop table field_status;
 CREATE TABLE IF NOT EXISTS field_status (
     field_id INT NOT NULL,
     moisture_level INT,
@@ -128,12 +141,14 @@ INSERT INTO field_status (field_id, moisture_level) VALUES
 (4, 15),
 (5, 30),
 (6, 10);
+select * from field_status;
 
 -- 4.2. Create a stored procedure CountCriticalFields that:
 -- • Uses a cursor
 -- • Iterates through all records
 -- • Counts how many fields have a moisture level below 30
 -- • Displays the total count
+-- DROP PROCEDURE CountCriticalFields;
 DELIMITER $$
 CREATE PROCEDURE CountCriticalFields()
 BEGIN
@@ -171,7 +186,7 @@ CALL CountCriticalFields();
 -- • schedule_id (INT, Primary Key)
 -- • field_id (INT)
 -- • irrigation_duration (INT) (in minutes)
-
+-- drop table irrigation_schedule;
 CREATE TABLE IF NOT EXISTS irrigation_schedule (
     schedule_id INT NOT NULL,
     field_id INT,
@@ -185,11 +200,13 @@ INSERT INTO irrigation_schedule (schedule_id, field_id, irrigation_duration) VAL
 (3, 3, 50),
 (4, 4, 60),
 (5, 5, 70);
+select * from irrigation_schedule;
 
 -- 5.2. Create a stored procedure AdjustIrrigationDuration that:
 -- • Uses a cursor
 -- • Increases irrigation duration by 20%
 -- • Updates each row individually
+-- DROP PROCEDURE AdjustIrrigationDuration;
 DELIMITER $$
 CREATE PROCEDURE AdjustIrrigationDuration()
 BEGIN
