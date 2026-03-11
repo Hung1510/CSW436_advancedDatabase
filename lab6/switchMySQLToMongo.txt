@@ -1,0 +1,31 @@
+SHOW VARIABLES LIKE 'secure_file_priv';
+
+SELECT * FROM customers
+INTO OUTFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/customers.csv'
+FIELDS TERMINATED BY ','
+ENCLOSED BY '"'
+LINES TERMINATED BY '\n';
+
+SELECT * FROM orders
+INTO OUTFILE 'C:/ProgramData/MySQL/MySQL Server 8.0/Uploads/orders.csv'
+FIELDS TERMINATED BY ','
+ENCLOSED BY '"'
+LINES TERMINATED BY '\n';
+
+exit
+
+copy "C:\ProgramData\MySQL\MySQL Server 8.0\Uploads\customers.csv" C:\Users\Giahu\
+
+copy "C:\ProgramData\MySQL\MySQL Server 8.0\Uploads\orders.csv" C:\Users\Giahu\
+
+cd C:\Users\Giahu
+
+dir *.csv
+
+type customers.csv
+
+type orders.csv
+
+mongoimport --db shopdb --collection customers --type csv --headerline --file customers.csv
+
+mongoimport --db shopdb --collection orders --type csv --headerline --file orders.csv

@@ -1,0 +1,126 @@
+question 1:Create a database named schoolDB and a collection called students. Insert 5 student records with the following fields: 
+student_id, name, class, age, marks, city 
+use schoolDB
+db.students.insertMany([
+  { student_id: 101, name: "Zhuang Fangyi", class: "10A", age: 16, marks: 90, city: "Ho Chi Minh" },
+  { student_id: 102, name: "Perlica", class: "10B", age: 15, marks: 72, city: "Binh Duong" },
+  { student_id: 103, name: "Chen Qianyu", class: "10A", age: 16, marks: 65, city: "Dong Nai" },
+  { student_id: 104, name: "Antal", class: "10B", age: 15, marks: 85, city: "Binh Duong" },
+  { student_id: 105, name: "Nefarith", class: "10A", age: 16, marks: 30, city: "Ho Chi Minh" }
+])
+
+
+question 2.	Write queries to: 
+•	Display all students. 
+db.students.find()
+•	Display students who scored more than 70 marks. 
+db.students.find({marks:{$gt:70}})
+•	Display students from class "10A". 
+db.students.find({ class: "10A" })
+
+
+3.	Write queries to: 
+•	Update the marks of the student whose student_id is 101. 
+db.students.updateOne(
+  { student_id: 101 },
+  { $set: { marks: 95 } }
+)
+•	Increase marks by 5 for all students in class "10A". 
+db.students.updateMany(
+  { class: "10A" },
+  { $inc: { marks: 5 } }
+)
+
+4.	Write queries to: 
+•	Delete the student whose student_id is 105. 
+db.students.deleteOne({ student_id: 105 })
+•	Delete students who scored less than 35 marks. 
+db.students.deleteMany({ marks: { $lt: 35 } })
+
+5.	Perform All CRUD Operations for the following: 
+•	Insert a new student record. 
+db.students.insertOne({
+  student_id: 108,
+  name: "random guy",
+  class: "10B",
+  age: 15,
+  marks: 78,
+  city: "Ho Chi Minh"
+})
+
+•	Update the student’s marks. 
+db.students.updateOne(
+  { student_id: 108 },
+  { $set: { marks: 88 } }
+)
+
+•	Display the updated record. 
+db.students.find({ student_id: 108 })
+
+•	Delete the same student record. 
+db.students.deleteOne({ student_id: 108 })
+
+
+
+
+OLAP Operations (Aggregation in MongoDB): Use the students collection for the following aggregation queries. 
+1.	Use - Group By: write an aggregation query to calculate the average marks of students in each class. 
+db.students.aggregate([
+  {
+    $group: {
+      _id: "$class",
+      averageMarks: { $avg: "$marks" }
+    }
+  }
+])
+
+2.	Sum of Marks: write an aggregation query to calculate the total marks of students in each class. 
+db.students.aggregate([
+  {
+    $group: {
+      _id: "$class",
+      totalMarks: { $sum: "$marks" }
+    }
+  }
+])
+
+3.	Write an aggregation query to count the number of students in each city. 
+db.students.aggregate([
+  {
+    $group: {
+      _id: "$city",
+      studentCount: { $count: {} }
+    }
+  }
+])
+
+4.	Filter and Group - write an aggregation query to: 
+•	Find the average marks of students from the city "Binh Doung". 
+db.students.aggregate([
+  {
+    $match: { city: "Binh Duong" }
+  },
+  {
+    $group: {
+      _id: "$city",
+      averageMarks: { $avg: "$marks" }
+    }
+  }
+])
+
+5.	Sort and top results - write an aggregation query to: 
+•	Display classes sorted by average marks in descending order. 
+db.students.aggregate([
+  {
+    $group: {
+      _id: "$class",
+      averageMarks: { $avg: "$marks" }
+    }
+  },
+  {
+    $sort: { averageMarks: -1 }
+  }
+])
+
+
+
