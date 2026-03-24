@@ -1,0 +1,8 @@
+trigger
+stored procedure
+mongo db
+transaction
+week 2 practice
+week 3 practice
+query process
+no deadlock, rollback
